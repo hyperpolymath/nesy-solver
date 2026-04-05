@@ -1,0 +1,109 @@
+<!-- SPDX-License-Identifier: PMPL-1.0-or-later -->
+<!-- Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk> -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>nesy-solver — Neurosymbolic Proof Playground</title>
+  <meta name="description" content="Live proof playground for neurosymbolic theorem provers, backed by a learning loop across hypatia, echidna, and verisimdb." />
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+<body data-theme="dark">
+  <header class="site-header">
+    <div class="brand">
+      <h1>nesy-solver</h1>
+      <span class="tagline">neurosymbolic proof playground</span>
+    </div>
+    <nav class="site-nav">
+      <a href="#playground" class="nav-link active">Playground</a>
+      <a href="#strategy" class="nav-link">Strategy</a>
+      <a href="#certificates" class="nav-link">Certificates</a>
+      <a href="#about" class="nav-link">About</a>
+    </nav>
+  </header>
+
+  <main id="playground" class="layout">
+    <section class="editor-panel">
+      <div class="panel-header">
+        <h2>Obligation</h2>
+        <div class="controls">
+          <label for="lang-select">Language:</label>
+          <select id="lang-select">
+            <option value="smtlib">SMT-LIB</option>
+            <option value="lean">Lean</option>
+            <option value="coq">Coq</option>
+            <option value="idris2">Idris2</option>
+            <option value="agda">Agda</option>
+          </select>
+
+          <label for="class-select">Class:</label>
+          <select id="class-select">
+            <option value="auto">auto (recommend)</option>
+            <option value="safety">safety</option>
+            <option value="linearity">linearity</option>
+            <option value="termination">termination</option>
+            <option value="equiv">equiv</option>
+            <option value="correctness">correctness</option>
+            <option value="confluence">confluence</option>
+            <option value="totality">totality</option>
+            <option value="invariant">invariant</option>
+            <option value="refinement">refinement</option>
+            <option value="model-check">model-check</option>
+            <option value="other">other</option>
+          </select>
+
+          <label for="prover-select">Prover:</label>
+          <select id="prover-select">
+            <option value="auto">auto (strategy)</option>
+            <option value="Z3">Z3</option>
+            <option value="CVC5">CVC5</option>
+            <option value="Coq">Coq</option>
+            <option value="Lean">Lean</option>
+            <option value="Idris2">Idris2</option>
+            <option value="Agda">Agda</option>
+            <option value="Isabelle">Isabelle</option>
+            <option value="Dafny">Dafny</option>
+            <option value="FStar">F*</option>
+          </select>
+        </div>
+      </div>
+      <div id="editor" class="editor" aria-label="Proof obligation editor"></div>
+      <div class="actions">
+        <button id="prove-btn" class="btn-primary">Prove</button>
+        <button id="clear-btn" class="btn-secondary">Clear</button>
+        <span id="status" class="status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="result-panel">
+      <div class="panel-header">
+        <h2>Result</h2>
+      </div>
+      <div id="result" class="result">
+        <p class="placeholder">Submit an obligation to see the prover's verdict.</p>
+      </div>
+    </section>
+
+    <aside class="strategy-panel">
+      <div class="panel-header">
+        <h2>Strategy</h2>
+      </div>
+      <div id="strategy" class="strategy">
+        <p class="placeholder">Top provers by class will appear here once the learning loop is wired.</p>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      <a href="https://github.com/hyperpolymath/nesy-solver">source</a> ·
+      <a href="/about">about</a> ·
+      <a href="https://nesy-solver.dev">nesy-solver.dev</a>
+    </p>
+    <p class="licence">PMPL-1.0-or-later © 2026 Jonathan D.A. Jewell (hyperpolymath)</p>
+  </footer>
+
+  <script type="module" src="/public/app.js"></script>
+</body>
+</html>

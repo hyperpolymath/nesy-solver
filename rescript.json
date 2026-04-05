@@ -1,0 +1,26 @@
+{
+  "name": "nesy-solver",
+  "version": "0.1.0",
+  "license": "PMPL-1.0-or-later",
+  "sources": [
+    {
+      "dir": "src/web",
+      "subdirs": true
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "esmodule",
+      "in-source": false
+    }
+  ],
+  "suffix": ".res.mjs",
+  "bs-dependencies": [],
+  "jsx": {
+    "version": 4,
+    "mode": "automatic"
+  },
+  "warnings": {
+    "error": "+101"
+  }
+}

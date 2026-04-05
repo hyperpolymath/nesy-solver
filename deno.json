@@ -1,0 +1,31 @@
+{
+  "name": "nesy-solver",
+  "version": "0.1.0",
+  "description": "Live proof playground for neurosymbolic theorem provers",
+  "license": "PMPL-1.0-or-later",
+  "exports": "./server.js",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-env server.js",
+    "build": "echo 'ReScript build: rescript build (wire in E1.5)' && mkdir -p dist && cp index.html dist/ && cp -r public dist/",
+    "test": "deno test --allow-net --allow-read",
+    "fmt": "deno fmt server.js public/*.js",
+    "lint": "deno lint server.js"
+  },
+  "imports": {
+    "@std/http": "jsr:@std/http@^1.0.0",
+    "@std/path": "jsr:@std/path@^1.0.0",
+    "@std/fs": "jsr:@std/fs@^1.0.0",
+    "@std/assert": "jsr:@std/assert@^1.0.0"
+  },
+  "fmt": {
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "useTabs": false
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}

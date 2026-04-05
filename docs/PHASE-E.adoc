@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+= Phase E — nesy-solver Playground
+:toc: left
+:sectnums:
+
+== Overview
+
+nesy-solver is a public proof playground at `nesy-solver.dev` backed by the
+hyperpolymath neurosymbolic learning loop (hypatia + echidna + verisimdb).
+
+Users submit proof obligations (SMT-LIB, Lean, Coq, Idris2, Agda), the app
+recommends a prover based on live `proof_attempts` strategy data, dispatches
+to echidna, streams the verdict back, and records the attempt in verisim-api
+so the playground itself becomes a learning source.
+
+== Phase plan
+
+|===
+| Milestone | Scope | Status
+
+| E1 | Scaffold + static frontend with mock `/api/prove` | *COMPLETE 2026-04-05*
+| E1.5 | Wire ReScript build pipeline; replace `public/app.js` with `App.res` output | pending
+| E2 | proven-server backend (V-lang, Idris2 ABI, Zig FFI) wrapping dodeca/hexadeca surfaces | pending
+| E3 | Deploy proven-server + Cloudflare Pages; E2E smoke (user → echidna → proof_attempts) | pending
+| E4 | V4 PROVEN/SANCTIFY certificate badges + user history panel | pending
+|===
+
+== E1 deliverables (complete)
+
+* Template instantiated from `rsr-template-repo` (placeholders replaced manually
+  — upstream `just init` is blocked by 30+ invalid escape sequences in Justfile
+  under just 1.46; see upstream fix task)
+* Deno runtime with `deno task dev` / `build` / `test`
+* Static HTML/CSS frontend with dark theme
+* CodeMirror 6 editor (from esm.sh) with SMT-LIB highlighting, sample
+  obligations for all 5 input languages
+* Controls: language / obligation-class / prover selectors
+* `POST /api/prove` stub returning the echidna `/api/verify` response shape
+* `GET /api/health`, `GET /api/strategy` stubs
+* Placeholder `src/web/App.res` for E1.5 ReScript migration
+
+== E1 architectural decisions (2026-04-05)
+
+[cols="1,3"]
+|===
+| Decision | Rationale
+
+| CodeMirror 6 (not Monaco) | Lighter, Deno-friendly, ESM-native; sufficient for SMT-LIB/Lean/Coq highlighting at E1. Revisit if we need full LSP at E3+.
+| Default port 8787 | Avoids collision with verisim-api (8080) on the dev host.
+| JS entry at `public/app.js`, ReScript parallel at `src/web/App.res` | Ships a working scaffold in E1 without blocking on ReScript build pipeline. E1.5 wires `rescript build` → `public/app.js`.
+| Hexadeca (16) over dodeca (12) | Keep all 16 V-lang protocol surfaces from `v_api_interfaces/`; picking 12 is arbitrary.
+| Backend on fly.io | echidna needs a persistent process; Cloudflare Workers cannot host it.
+| Public read + anonymous rate-limited write | Cloudflare Turnstile for v1; login deferred.
+| UUID in localStorage for session persistence | Defer login until post-launch.
+| V4 certs: graceful degradation | Show badges when earned, "pending" greyed-out otherwise.
+|===
+
+== Running locally
+
+[source,bash]
+----
+deno task dev        # http://localhost:8787
+curl http://localhost:8787/api/health
+curl -X POST http://localhost:8787/api/prove \
+  -H "Content-Type: application/json" \
+  -d '{"language":"smtlib","obligationClass":"safety","prover":"auto","content":"(check-sat)"}'
+----
+
+== Backend endpoints the E3 integration will proxy
+
+[cols="1,2,2"]
+|===
+| Purpose | Upstream | Frontend route
+
+| verify obligation | echidna :8090 `POST /api/verify` | `POST /api/prove`
+| strategy lookup | verisim-api :8080 `GET /api/v1/proof_attempts/strategy` | `GET /api/strategy`
+| certificates | verisim-api :8080 `GET /api/v1/proof_attempts/certificates` (V4) | `GET /api/certificates`
+| record attempt | verisim-api :8080 `POST /api/v1/proof_attempts` | (server-side, post-verify) |
+|===
+
+== Known quirks
+
+* ClickHouse `DateTime64(3)` rejects trailing `Z` — use `2026-04-05T09:30:00.000`
+* echidna returns `valid=true` even on Idris2/Agda parse errors — treat
+  validity as best-effort; duration is reliable
+* `JSONEachRow` serialises `UInt64` as string — parse with care
