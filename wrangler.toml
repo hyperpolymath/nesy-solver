@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Cloudflare Pages deploy config for nesy-solver.
+#
+# Deploy (direct upload):
+#   wrangler pages deploy dist --project-name=nesy-solver
+# Or preview on a named branch:
+#   wrangler pages deploy dist --project-name=nesy-solver --branch=preview
+#
+# Custom domain (after first deploy):
+#   wrangler pages domain add nesy-solver.dev --project-name=nesy-solver
+
+name = "nesy-solver"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-04-05"

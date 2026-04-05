@@ -144,7 +144,7 @@ function renderResult(body) {
 async function loadStrategy(classValue) {
   const target = classValue === "auto" ? "safety" : classValue;
   try {
-    const resp = await fetch(`/api/strategy?class=${encodeURIComponent(target)}`);
+    const resp = await fetch(`/api/strategy/${encodeURIComponent(target)}`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const body = await resp.json();
     renderStrategy(body, target);

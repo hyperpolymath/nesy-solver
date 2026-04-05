@@ -104,3 +104,6 @@ sync_report*.txt
 # Hypatia scan cache (local-only)
 .hypatia/
 .zig-cache/
+dist/
+.wrangler/
+node_modules/
