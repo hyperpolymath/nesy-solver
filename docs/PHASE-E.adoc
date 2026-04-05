@@ -7,7 +7,7 @@
 == Overview
 
 nesy-solver is a public proof playground at `nesy-solver.dev` backed by the
-hyperpolymath neurosymbolic learning loop (hypatia + echidna + verisimdb).
+hyperpolymath neurosymbolic learning loop (hypatia + echidna + verisim).
 
 Users submit proof obligations (SMT-LIB, Lean, Coq, Idris2, Agda), the app
 recommends a prover based on live `proof_attempts` strategy data, dispatches

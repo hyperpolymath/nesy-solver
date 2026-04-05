@@ -9,7 +9,7 @@
 name = "nesy-solver"
 version = "0.1.0"
 revision = 1
-summary = "Live proof playground for neurosymbolic theorem provers — backed by a learning loop across hypatia/echidna/verisimdb"
+summary = "Live proof playground for neurosymbolic theorem provers — backed by a learning loop across hypatia/echidna/verisim"
 description = """
 Nesy Solver — containerised service packaged as a verified
 cerro-torre .ctp bundle with Ed25519 signing and full provenance
