@@ -120,17 +120,63 @@ function renderResult(body) {
   }
   const verdictClass = body.valid === true ? "valid" : body.valid === false ? "invalid" : "unknown";
   const verdictText = body.valid === true ? "valid" : body.valid === false ? "invalid" : "unknown";
+  const recordedBadge = body.recorded === true
+    ? `<span class="badge ok">recorded</span>`
+    : body.recorded === false && !body.mock
+      ? `<span class="badge warn">not recorded</span>`
+      : "";
   resultEl.innerHTML = `
-    <p class="verdict ${verdictClass}">${verdictText}</p>
+    <p class="verdict ${verdictClass}">${verdictText} ${recordedBadge}</p>
     <dl>
       <dt>prover</dt><dd>${escapeHtml(body.prover ?? "—")}</dd>
       <dt>duration</dt><dd>${body.duration_ms ?? "—"} ms</dd>
       <dt>goals remaining</dt><dd>${body.goals_remaining ?? "—"}</dd>
       <dt>tactics used</dt><dd>${body.tactics_used ?? "—"}</dd>
       <dt>strategy</dt><dd>${escapeHtml(body.strategy_tag ?? "—")}</dd>
+      ${body.attempt_id ? `<dt>attempt</dt><dd>${escapeHtml(body.attempt_id)}</dd>` : ""}
+      ${body.obligation_id ? `<dt>obligation</dt><dd class="truncate">${escapeHtml(body.obligation_id.slice(0, 16))}…</dd>` : ""}
     </dl>
     ${body.prover_output ? `<pre>${escapeHtml(body.prover_output)}</pre>` : ""}
-    ${body.mock ? `<p class="placeholder">⚠ Mock response — E3 will wire real echidna backend.</p>` : ""}
+    ${body.mock ? `<p class="placeholder">⚠ Backend unreachable — showing mock response.</p>` : ""}
+  `;
+}
+
+async function loadStrategy(classValue) {
+  const target = classValue === "auto" ? "safety" : classValue;
+  try {
+    const resp = await fetch(`/api/strategy?class=${encodeURIComponent(target)}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const body = await resp.json();
+    renderStrategy(body, target);
+  } catch (err) {
+    const strategyEl = document.getElementById("strategy");
+    if (strategyEl) {
+      strategyEl.innerHTML = `<p class="placeholder">Strategy data unavailable: ${escapeHtml(err.message)}</p>`;
+    }
+  }
+}
+
+function renderStrategy(body, targetClass) {
+  const strategyEl = document.getElementById("strategy");
+  if (!strategyEl) return;
+  const recs = body.recommendations ?? [];
+  if (recs.length === 0) {
+    strategyEl.innerHTML = `<p class="placeholder">No attempts recorded yet for class <code>${escapeHtml(targetClass)}</code>.</p>`;
+    return;
+  }
+  const rows = recs.slice(0, 5).map((r) => `
+    <tr>
+      <td>${escapeHtml(r.prover)}</td>
+      <td>${((r.success_rate ?? 0) * 100).toFixed(1)}%</td>
+      <td>${(r.avg_duration_ms ?? 0).toFixed(0)} ms</td>
+      <td>${r.total_attempts ?? 0}</td>
+    </tr>`).join("");
+  strategyEl.innerHTML = `
+    <p class="strategy-class">class: <code>${escapeHtml(targetClass)}</code>${body.mock ? " (mock)" : ""}</p>
+    <table class="strategy-table">
+      <thead><tr><th>prover</th><th>success</th><th>avg</th><th>n</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
   `;
 }
 
@@ -147,7 +193,8 @@ function setStatus(text, kind) {
 
 // ── Events ────────────────────────────────────────────────────────────
 langSelect.addEventListener("change", () => mountEditor(langSelect.value));
-proveBtn.addEventListener("click", prove);
+classSelect.addEventListener("change", () => loadStrategy(classSelect.value));
+proveBtn.addEventListener("click", async () => { await prove(); loadStrategy(classSelect.value); });
 clearBtn.addEventListener("click", () => {
   if (editorView) editorView.dispatch({ changes: { from: 0, to: editorView.state.doc.length } });
   resultEl.innerHTML = `<p class="placeholder">Submit an obligation to see the prover's verdict.</p>`;
@@ -156,4 +203,5 @@ clearBtn.addEventListener("click", () => {
 
 // ── Boot ──────────────────────────────────────────────────────────────
 mountEditor(langSelect.value);
+loadStrategy(classSelect.value);
 setStatus("ready", "ok");

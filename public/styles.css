@@ -308,3 +308,55 @@ body {
     max-height: 200px;
   }
 }
+
+/* E3: strategy table + recorded badge */
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 8px;
+  margin-left: 0.5rem;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+.badge.ok { background: #3fb95033; color: var(--success); }
+.badge.warn { background: #d2992233; color: var(--warn); }
+
+.strategy-class {
+  font-size: 0.8rem;
+  color: var(--fg-muted);
+  margin-bottom: 0.5rem;
+}
+.strategy-class code {
+  color: var(--accent);
+  background: var(--bg);
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+}
+
+.strategy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-family: var(--mono);
+}
+.strategy-table th {
+  text-align: left;
+  color: var(--fg-dim);
+  font-weight: 500;
+  padding: 0.25rem 0.5rem 0.25rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.strategy-table td {
+  padding: 0.25rem 0.5rem 0.25rem 0;
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+}
+.strategy-table tr:last-child td { border-bottom: none; }
+
+.result dd.truncate {
+  font-size: 0.75rem;
+  color: var(--fg-muted);
+}

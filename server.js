@@ -1,24 +1,23 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 // Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 
-// nesy-solver dev server — Deno (NOT Node) serves static files + stub API.
-// E3 will replace /api/prove with a proxy to proven-server → echidna :8090.
+// nesy-solver dev server — Deno serves static files + proxies the API.
+// E3 wires /api/prove and /api/strategy to the V-lang backend
+// (proven-nesy-solver-api running on NESY_BACKEND_URL, default :9000),
+// which forwards to echidna (:8090) and verisim-api (:8080).
+//
+// When the backend is unreachable the handlers degrade to a mock response
+// with `mock: true` so the frontend never 500s.
 
 import { serveDir } from "@std/http/file-server";
 import { join } from "@std/path";
 
 // Default port 8787 to avoid collision with verisim-api (8080) on the dev host.
 const PORT = Number(Deno.env.get("PORT") ?? 8787);
+const BACKEND_URL = Deno.env.get("NESY_BACKEND_URL") ?? "http://localhost:9000";
 const ROOT = new URL(".", import.meta.url).pathname;
 
-/**
- * Mock prove handler. Mirrors echidna /api/verify response shape so the
- * frontend contract is stable before E3 wires the real backend.
- *
- * Request shape:  { language, obligationClass, prover, content }
- * Response shape: { valid, duration_ms, goals_remaining, tactics_used,
- *                   prover, strategy_tag, prover_output, mock: true }
- */
+/** POST /api/prove — proxies to V backend /prove, degrades to mock on failure. */
 async function handleProve(req) {
   let body;
   try {
@@ -31,42 +30,100 @@ async function handleProve(req) {
     return json({ error: "content required" }, 400);
   }
 
-  // Deterministic mock: "valid" iff content references `check-sat`, `Qed`, `refl`, `Refl`, or `by`.
+  try {
+    const resp = await fetch(`${BACKEND_URL}/prove`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ language, obligationClass, prover, content }),
+      signal: AbortSignal.timeout(30_000),
+    });
+    const bodyText = await resp.text();
+    return new Response(bodyText, {
+      status: resp.status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (err) {
+    console.warn(`backend unreachable: ${err.message} — returning mock`);
+    return json(mockProveResponse({ language, obligationClass, prover, content }));
+  }
+}
+
+/** GET /api/strategy?class=safety — proxies to V backend /strategy/:class. */
+async function handleStrategy(req) {
+  const url = new URL(req.url);
+  const cls = url.searchParams.get("class") ?? "safety";
+  try {
+    const resp = await fetch(`${BACKEND_URL}/strategy/${encodeURIComponent(cls)}`, {
+      signal: AbortSignal.timeout(10_000),
+    });
+    const bodyText = await resp.text();
+    return new Response(bodyText, {
+      status: resp.status,
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
+  } catch (err) {
+    console.warn(`backend unreachable: ${err.message} — returning mock strategy`);
+    return json({
+      mock: true,
+      obligation_class: cls,
+      recommendations: [{ prover: "z3", success_rate: 0, avg_duration_ms: 0, total_attempts: 0 }],
+    });
+  }
+}
+
+/** GET /api/health — aggregates frontend + backend health. */
+async function handleHealth() {
+  let backend = null;
+  try {
+    const resp = await fetch(`${BACKEND_URL}/health`, { signal: AbortSignal.timeout(3_000) });
+    if (resp.ok) backend = await resp.json();
+  } catch (_err) {
+    backend = { reachable: false, url: BACKEND_URL };
+  }
+  return json({
+    status: "ok",
+    version: "0.1.0",
+    frontend_port: PORT,
+    backend_url: BACKEND_URL,
+    backend,
+  });
+}
+
+/** Mock prove response used when the V backend is unreachable. */
+function mockProveResponse({ language, obligationClass, prover, content }) {
   const valid = /check-sat|Qed|refl|Refl|by\s/.test(content);
   const resolvedProver = prover === "auto" ? pickProver(obligationClass, language) : prover;
   const duration_ms = 20 + Math.floor(Math.random() * 80);
-
-  return json({
+  return {
     valid,
+    outcome: valid ? "success" : "failure",
+    prover: resolvedProver,
     duration_ms,
     goals_remaining: valid ? 0 : 1,
     tactics_used: valid ? 3 : 0,
-    prover: resolvedProver,
     obligation_class: obligationClass,
     language,
     strategy_tag: "mock-handler",
     prover_output: valid
       ? `; ${resolvedProver} OK (mock)\n; ${content.split("\n").length} lines processed`
-      : `; ${resolvedProver} could not dispatch (mock)\n; E3 will wire real echidna backend`,
+      : `; ${resolvedProver} could not dispatch (mock)\n; backend ${BACKEND_URL} unreachable`,
+    attempt_id: null,
+    recorded: false,
     mock: true,
-  });
+  };
 }
 
-/** Crude strategy fallback — replaced in E3 by verisim-api /strategy query. */
 function pickProver(obligationClass, language) {
-  const byLang = {
-    smtlib: "Z3",
-    lean: "Lean",
-    coq: "Coq",
-    idris2: "Idris2",
-    agda: "Agda",
-  };
+  const byLang = { smtlib: "Z3", lean: "Lean", coq: "Coq", idris2: "Idris2", agda: "Agda" };
   const byClass = {
-    safety: "Z3",
-    linearity: "Idris2",
-    termination: "Agda",
-    equiv: "Lean",
-    correctness: "Coq",
+    safety: "Z3", linearity: "Idris2", termination: "Agda",
+    equiv: "Lean", correctness: "Coq",
   };
   return byClass[obligationClass] ?? byLang[language] ?? "Z3";
 }
@@ -81,29 +138,13 @@ function json(payload, status = 200) {
   });
 }
 
-/** Serves index.html at root, static files for /public/*, and API for /api/*. */
 async function handler(req) {
   const url = new URL(req.url);
 
-  if (url.pathname === "/api/prove" && req.method === "POST") {
-    return handleProve(req);
-  }
-  if (url.pathname === "/api/health" && req.method === "GET") {
-    return json({ status: "ok", version: "0.1.0", mode: "mock" });
-  }
-  if (url.pathname === "/api/strategy" && req.method === "GET") {
-    // Mock strategy data — E3 proxies verisim-api /api/v1/proof_attempts/strategy
-    return json({
-      mock: true,
-      classes: {
-        safety: { top: "Z3", success_rate: 0.92, n: 24 },
-        linearity: { top: "Idris2", success_rate: 0.78, n: 9 },
-        termination: { top: "Agda", success_rate: 0.71, n: 7 },
-      },
-    });
-  }
+  if (url.pathname === "/api/prove" && req.method === "POST") return handleProve(req);
+  if (url.pathname === "/api/strategy" && req.method === "GET") return handleStrategy(req);
+  if (url.pathname === "/api/health" && req.method === "GET") return handleHealth();
 
-  // Static files
   if (url.pathname === "/" || url.pathname === "/index.html") {
     const html = await Deno.readTextFile(join(ROOT, "index.html"));
     return new Response(html, {
@@ -114,5 +155,5 @@ async function handler(req) {
 }
 
 console.log(`nesy-solver dev server listening on http://localhost:${PORT}`);
-console.log(`  mode: mock (echidna backend wires in E3)`);
+console.log(`  backend: ${BACKEND_URL}`);
 Deno.serve({ port: PORT }, handler);
