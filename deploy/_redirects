@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Cloudflare Pages _redirects — proxy API calls to the fly.io backend.
+# Format: source destination [status]
+# 200 = proxy (transparent); 301/302 = redirect.
+#
+# API proxy strips the /api prefix so the V backend sees its native routes.
+
+/api/prove          https://nesy-solver-api.fly.dev/prove              200
+/api/strategy/*     https://nesy-solver-api.fly.dev/strategy/:splat    200
+/api/health         https://nesy-solver-api.fly.dev/health             200
+/api/surfaces       https://nesy-solver-api.fly.dev/surfaces           200
