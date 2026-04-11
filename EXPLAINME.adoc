@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
-= {project-name} — Show Me The Receipts
+= nesy-solver — Show Me The Receipts
 :toc:
 :icons: font
 
