@@ -134,15 +134,17 @@ All ECHIDNA invocations go through the `echidna-llm-mcp` BoJ cartridge.
 | Tool | Description |
 |------|-------------|
 | `echidna_list_provers` | Discover all 105 provers with tier/category/complexity |
-| `echidna_prove` | Invoke a prover on a file path (auto-detects from extension) |
-| `echidna_verify` | Verify inline proof content as a string |
-| `echidna_search` | Keyword search over the 66,674-proof corpus |
-| `echidna_suggest_tactics` | Advisory tactic suggestions for a goal |
-| `echidna_rank_provers` | Advisory prover ranking for a theorem |
+| `echidna_prove` | Invoke a prover on proof content (typed outcome) |
+| `echidna_verify` | Verify inline proof content (typed outcome) |
+| `echidna_verify_raw` | Direct binary invocation (EProver, CaDiCaL, SAT solvers) |
+| `echidna_suggest` | Neural tactic suggestions (Julia ML corpus-backed) |
+| `echidna_suggest_tactics` | Aspect-tag tactic suggestions — advisory only |
+| `echidna_search` | Keyword search over 66,674-proof corpus |
+| `echidna_session_create` | Start interactive tactic session |
 
 ```json
 { "tool": "echidna_list_provers", "args": {} }
-{ "tool": "echidna_prove", "args": { "file": "/path/to/proof.lean", "prover": "Lean" } }
+{ "tool": "echidna_prove", "args": { "prover": "Lean", "content": "theorem t : 1 + 1 = 2 := rfl" } }
 { "tool": "echidna_suggest_tactics", "args": { "goal": "n + 0 = n", "prover": "Lean" } }
 ```
 
