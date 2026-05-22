@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 // Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 = Phase E — nesy-solver Playground
 :toc: left
@@ -21,7 +21,7 @@ so the playground itself becomes a learning source.
 
 | E1 | Scaffold + static frontend with mock `/api/prove` | *COMPLETE 2026-04-05*
 | E1.5 | Wire ReScript build pipeline; replace `public/app.js` with `App.res` output | pending
-| E2 | proven-server backend (V-lang, Idris2 ABI, Zig FFI) wrapping dodeca/hexadeca surfaces | pending
+| E2 | proven-server backend (zig, Idris2 ABI, Zig FFI) wrapping dodeca/hexadeca surfaces | pending
 | E3 | Deploy proven-server + Cloudflare Pages; E2E smoke (user → echidna → proof_attempts) | pending
 | E4 | V4 PROVEN/SANCTIFY certificate badges + user history panel | pending
 |===
@@ -49,7 +49,7 @@ so the playground itself becomes a learning source.
 | CodeMirror 6 (not Monaco) | Lighter, Deno-friendly, ESM-native; sufficient for SMT-LIB/Lean/Coq highlighting at E1. Revisit if we need full LSP at E3+.
 | Default port 8787 | Avoids collision with verisim-api (8080) on the dev host.
 | JS entry at `public/app.js`, ReScript parallel at `src/web/App.res` | Ships a working scaffold in E1 without blocking on ReScript build pipeline. E1.5 wires `rescript build` → `public/app.js`.
-| Hexadeca (16) over dodeca (12) | Keep all 16 V-lang protocol surfaces from `v_api_interfaces/`; picking 12 is arbitrary.
+| Hexadeca (16) over dodeca (12) | Keep all 16 zig protocol surfaces from `v_api_interfaces/`; picking 12 is arbitrary.
 | Backend on fly.io | echidna needs a persistent process; Cloudflare Workers cannot host it.
 | Public read + anonymous rate-limited write | Cloudflare Turnstile for v1; login deferred.
 | UUID in localStorage for session persistence | Defer login until post-launch.

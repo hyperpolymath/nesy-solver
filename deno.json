@@ -2,7 +2,7 @@
   "name": "nesy-solver",
   "version": "0.1.0",
   "description": "Live proof playground for neurosymbolic theorem provers",
-  "license": "PMPL-1.0-or-later",
+  "license": "MPL-2.0",
   "exports": "./server.js",
   "tasks": {
     "dev": "deno run --allow-net --allow-read --allow-env server.js",

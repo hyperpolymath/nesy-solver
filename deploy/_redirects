@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Cloudflare Pages _redirects — proxy API calls to the fly.io backend.
 # Format: source destination [status]
 # 200 = proxy (transparent); 301/302 = redirect.
