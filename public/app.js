@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
-
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // nesy-solver frontend bootstrap — CodeMirror 6 editor + prove dispatcher.
 // JS (not TS) per policy; ReScript App.res is parallel and will supersede when wired in E1.5.
 

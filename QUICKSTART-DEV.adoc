@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // Template: QUICKSTART-DEV.adoc — clone → build → test → PR
 // Replace nesy-solver, deno task build, deno test, ReScript, Deno, zig, Idris2, Zig with actuals
 = nesy-solver — Quick Start for Developers

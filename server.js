@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
-// Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
-
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 // nesy-solver dev server — Deno serves static files + proxies the API.
 // E3 wires /api/prove and /api/strategy to the zig backend
 // (proven-nesy-solver-api running on NESY_BACKEND_URL, default :9000),
