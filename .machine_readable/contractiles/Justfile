@@ -793,7 +793,6 @@ deps-audit:
     #   cargo audit
     #   mix audit
     @command -v trivy >/dev/null && trivy fs --severity HIGH,CRITICAL --quiet . || true
-    @command -v gitleaks >/dev/null && gitleaks detect --source . --no-git --quiet || true
     @echo "Audit complete"
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -1028,7 +1027,6 @@ install-hooks:
 # Run security audit
 security: deps-audit
     @echo "=== Security Audit ==="
-    @command -v gitleaks >/dev/null && gitleaks detect --source . --verbose || true
     @command -v trivy >/dev/null && trivy fs --severity HIGH,CRITICAL . || true
     @echo "Security audit complete"
 
@@ -1330,3 +1328,6 @@ help-me:
     @echo "  https://github.com/hyperpolymath/nesy-solver/issues/new"
     @echo ""
     @echo "Include the output of 'just doctor' in your report."
+
+secret-scan-trufflehog:
+    @command -v trufflehog >/dev/null && trufflehog filesystem . --only-verified || true
