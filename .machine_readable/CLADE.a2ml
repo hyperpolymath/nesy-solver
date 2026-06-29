@@ -3,7 +3,7 @@
 # See: https://github.com/hyperpolymath/gv-clade-index
 
 [identity]
-uuid = "a5ea1382-a34c-5334-8a46-a2ebe904c810"
+uuid = "874fa3d5-7c0f-5b39-90a4-4a2890791ff8"
 primary-forge = "github"
 primary-owner = "hyperpolymath"
 canonical-name = "nesy-solver"
