@@ -115,30 +115,37 @@ async function prove() {
 
 function renderResult(body) {
   if (body.error) {
-    resultEl.innerHTML = `<p class="verdict invalid">error</p><pre>${escapeHtml(body.error)}</pre>`;
+    const verdict = textElement("p", "error", "verdict invalid");
+    const output = textElement("pre", body.error);
+    resultEl.replaceChildren(verdict, output);
     return;
   }
   const verdictClass = body.valid === true ? "valid" : body.valid === false ? "invalid" : "unknown";
   const verdictText = body.valid === true ? "valid" : body.valid === false ? "invalid" : "unknown";
-  const recordedBadge = body.recorded === true
-    ? `<span class="badge ok">recorded</span>`
-    : body.recorded === false && !body.mock
-      ? `<span class="badge warn">not recorded</span>`
-      : "";
-  resultEl.innerHTML = `
-    <p class="verdict ${verdictClass}">${verdictText} ${recordedBadge}</p>
-    <dl>
-      <dt>prover</dt><dd>${escapeHtml(body.prover ?? "—")}</dd>
-      <dt>duration</dt><dd>${body.duration_ms ?? "—"} ms</dd>
-      <dt>goals remaining</dt><dd>${body.goals_remaining ?? "—"}</dd>
-      <dt>tactics used</dt><dd>${body.tactics_used ?? "—"}</dd>
-      <dt>strategy</dt><dd>${escapeHtml(body.strategy_tag ?? "—")}</dd>
-      ${body.attempt_id ? `<dt>attempt</dt><dd>${escapeHtml(body.attempt_id)}</dd>` : ""}
-      ${body.obligation_id ? `<dt>obligation</dt><dd class="truncate">${escapeHtml(body.obligation_id.slice(0, 16))}…</dd>` : ""}
-    </dl>
-    ${body.prover_output ? `<pre>${escapeHtml(body.prover_output)}</pre>` : ""}
-    ${body.mock ? `<p class="placeholder">⚠ Backend unreachable — showing mock response.</p>` : ""}
-  `;
+  const verdict = textElement("p", verdictText, `verdict ${verdictClass}`);
+  if (body.recorded === true) {
+    verdict.append(" ", textElement("span", "recorded", "badge ok"));
+  } else if (body.recorded === false && !body.mock) {
+    verdict.append(" ", textElement("span", "not recorded", "badge warn"));
+  }
+
+  const details = document.createElement("dl");
+  appendDetail(details, "prover", body.prover ?? "—");
+  appendDetail(details, "duration", `${body.duration_ms ?? "—"} ms`);
+  appendDetail(details, "goals remaining", body.goals_remaining ?? "—");
+  appendDetail(details, "tactics used", body.tactics_used ?? "—");
+  appendDetail(details, "strategy", body.strategy_tag ?? "—");
+  if (body.attempt_id) appendDetail(details, "attempt", body.attempt_id);
+  if (body.obligation_id) {
+    appendDetail(details, "obligation", `${String(body.obligation_id).slice(0, 16)}…`, "truncate");
+  }
+
+  const children = [verdict, details];
+  if (body.prover_output) children.push(textElement("pre", body.prover_output));
+  if (body.mock) {
+    children.push(textElement("p", "⚠ Backend unreachable — showing mock response.", "placeholder"));
+  }
+  resultEl.replaceChildren(...children);
 }
 
 async function loadStrategy(classValue) {
@@ -151,7 +158,7 @@ async function loadStrategy(classValue) {
   } catch (err) {
     const strategyEl = document.getElementById("strategy");
     if (strategyEl) {
-      strategyEl.innerHTML = `<p class="placeholder">Strategy data unavailable: ${escapeHtml(err.message)}</p>`;
+      strategyEl.replaceChildren(textElement("p", `Strategy data unavailable: ${err.message}`, "placeholder"));
     }
   }
 }
@@ -161,29 +168,49 @@ function renderStrategy(body, targetClass) {
   if (!strategyEl) return;
   const recs = body.recommendations ?? [];
   if (recs.length === 0) {
-    strategyEl.innerHTML = `<p class="placeholder">No attempts recorded yet for class <code>${escapeHtml(targetClass)}</code>.</p>`;
+    const placeholder = textElement("p", "No attempts recorded yet for class ", "placeholder");
+    placeholder.append(textElement("code", targetClass), ".");
+    strategyEl.replaceChildren(placeholder);
     return;
   }
-  const rows = recs.slice(0, 5).map((r) => `
-    <tr>
-      <td>${escapeHtml(r.prover)}</td>
-      <td>${((r.success_rate ?? 0) * 100).toFixed(1)}%</td>
-      <td>${(r.avg_duration_ms ?? 0).toFixed(0)} ms</td>
-      <td>${r.total_attempts ?? 0}</td>
-    </tr>`).join("");
-  strategyEl.innerHTML = `
-    <p class="strategy-class">class: <code>${escapeHtml(targetClass)}</code>${body.mock ? " (mock)" : ""}</p>
-    <table class="strategy-table">
-      <thead><tr><th>prover</th><th>success</th><th>avg</th><th>n</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `;
+
+  const classLabel = textElement("p", "class: ", "strategy-class");
+  classLabel.append(textElement("code", targetClass));
+  if (body.mock) classLabel.append(" (mock)");
+
+  const table = document.createElement("table");
+  table.className = "strategy-table";
+  const headRow = document.createElement("tr");
+  for (const heading of ["prover", "success", "avg", "n"]) {
+    headRow.append(textElement("th", heading));
+  }
+  const thead = document.createElement("thead");
+  thead.append(headRow);
+
+  const tbody = document.createElement("tbody");
+  for (const rec of recs.slice(0, 5)) {
+    const row = document.createElement("tr");
+    row.append(
+      textElement("td", rec.prover),
+      textElement("td", `${((rec.success_rate ?? 0) * 100).toFixed(1)}%`),
+      textElement("td", `${(rec.avg_duration_ms ?? 0).toFixed(0)} ms`),
+      textElement("td", rec.total_attempts ?? 0),
+    );
+    tbody.append(row);
+  }
+  table.append(thead, tbody);
+  strategyEl.replaceChildren(classLabel, table);
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
-  }[c]));
+function textElement(tagName, text, className = "") {
+  const element = document.createElement(tagName);
+  element.textContent = String(text);
+  if (className) element.className = className;
+  return element;
+}
+
+function appendDetail(list, label, value, className = "") {
+  list.append(textElement("dt", label), textElement("dd", value, className));
 }
 
 function setStatus(text, kind) {
@@ -197,7 +224,7 @@ classSelect.addEventListener("change", () => loadStrategy(classSelect.value));
 proveBtn.addEventListener("click", async () => { await prove(); loadStrategy(classSelect.value); });
 clearBtn.addEventListener("click", () => {
   if (editorView) editorView.dispatch({ changes: { from: 0, to: editorView.state.doc.length } });
-  resultEl.innerHTML = `<p class="placeholder">Submit an obligation to see the prover's verdict.</p>`;
+  resultEl.replaceChildren(textElement("p", "Submit an obligation to see the prover's verdict.", "placeholder"));
   setStatus("", "");
 });
 

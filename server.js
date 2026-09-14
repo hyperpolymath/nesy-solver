@@ -40,10 +40,7 @@ async function handleProve(req) {
     const bodyText = await resp.text();
     return new Response(bodyText, {
       status: resp.status,
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     });
   } catch (err) {
     console.warn(`backend unreachable: ${err.message} — returning mock`);
@@ -62,10 +59,7 @@ async function handleStrategy(req) {
     const bodyText = await resp.text();
     return new Response(bodyText, {
       status: resp.status,
-      headers: {
-        "Content-Type": "application/json; charset=utf-8",
-        "Access-Control-Allow-Origin": "*",
-      },
+      headers: { "Content-Type": "application/json; charset=utf-8" },
     });
   } catch (err) {
     console.warn(`backend unreachable: ${err.message} — returning mock strategy`);
@@ -131,10 +125,7 @@ function pickProver(obligationClass, language) {
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload, null, 2), {
     status,
-    headers: {
-      "Content-Type": "application/json; charset=utf-8",
-      "Access-Control-Allow-Origin": "*",
-    },
+    headers: { "Content-Type": "application/json; charset=utf-8" },
   });
 }
 
