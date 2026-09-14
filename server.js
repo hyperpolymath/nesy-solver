@@ -122,6 +122,7 @@ function pickProver(obligationClass, language) {
   return byClass[obligationClass] ?? byLang[language] ?? "Z3";
 }
 
+/** Serialize a payload as an application/json response. */
 function json(payload, status = 200) {
   return new Response(JSON.stringify(payload, null, 2), {
     status,

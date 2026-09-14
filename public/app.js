@@ -113,6 +113,7 @@ async function prove() {
   }
 }
 
+/** Render a proof response as text-only DOM nodes. */
 function renderResult(body) {
   if (body.error) {
     const verdict = textElement("p", "error", "verdict invalid");
@@ -148,6 +149,7 @@ function renderResult(body) {
   resultEl.replaceChildren(...children);
 }
 
+/** Fetch and render recommendations for the selected obligation class. */
 async function loadStrategy(classValue) {
   const target = classValue === "auto" ? "safety" : classValue;
   try {
@@ -163,6 +165,7 @@ async function loadStrategy(classValue) {
   }
 }
 
+/** Render strategy recommendations as a safe DOM table. */
 function renderStrategy(body, targetClass) {
   const strategyEl = document.getElementById("strategy");
   if (!strategyEl) return;
@@ -202,6 +205,7 @@ function renderStrategy(body, targetClass) {
   strategyEl.replaceChildren(classLabel, table);
 }
 
+/** Create an element whose content is assigned through textContent. */
 function textElement(tagName, text, className = "") {
   const element = document.createElement(tagName);
   element.textContent = String(text);
@@ -209,6 +213,7 @@ function textElement(tagName, text, className = "") {
   return element;
 }
 
+/** Append a term and description pair to a details list. */
 function appendDetail(list, label, value, className = "") {
   list.append(textElement("dt", label), textElement("dd", value, className));
 }
