@@ -137,7 +137,17 @@ install_just() {
 
     case "$PKG_MGR" in
         dnf)        sudo dnf install -y just ;;
-        apt)        sudo apt-get install -y just ;;
+        apt)
+            if apt-cache show just >/dev/null 2>&1; then
+                sudo apt-get install -y just
+            else
+                info "just is not available from the configured apt repositories; using the official installer"
+                mkdir -p "$HOME/.local/bin"
+                curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "$HOME/.local/bin"
+                PATH="$HOME/.local/bin:$PATH"
+                export PATH
+            fi
+            ;;
         pacman)     sudo pacman -S --noconfirm just ;;
         apk)        sudo apk add just ;;
         brew)       brew install just ;;
