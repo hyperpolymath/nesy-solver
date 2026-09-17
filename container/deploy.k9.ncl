@@ -1,3 +1,4 @@
+K9!
 # SPDX-License-Identifier: MPL-2.0
 # deploy.k9.ncl — Nesy Solver deployment component (Hunt level)
 #
@@ -143,7 +144,14 @@ echo "K9: Rollback complete."
 
 # Export the component
 {
-  pedigree = component_pedigree,
+  # Keep the detailed L1-L5 pedigree while exposing the validator's canonical
+  # top-level identity and leash fields.
+  pedigree = component_pedigree & {
+    name = "nesy-solver-deploy",
+    schema_version = "1.0.0",
+    leash = 'Hunt,
+    signature = "PLACEHOLDER-SIGNATURE-REQUIRED-FOR-HUNT",
+  },
   deployment = deployment,
   scripts = scripts,
 
